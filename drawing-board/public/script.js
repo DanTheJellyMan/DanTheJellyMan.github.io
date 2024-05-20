@@ -70,13 +70,3 @@ socket.on('draw', (data) => {
     const h = canvas.height;
     drawLine(data.x0 * w, data.y0 * h, data.x1 * w, data.y1 * h, data.color);
 });
-
-socket.on('requestPassword', () => {
-    const enteredPassword = prompt('Enter the password:');
-    socket.emit('password', enteredPassword);
-});
-
-socket.on('invalidPassword', () => {
-    alert('Invalid password! Please try again.');
-    location.reload();
-});
