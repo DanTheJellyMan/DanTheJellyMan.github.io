@@ -1,16 +1,10 @@
 const canvas = document.getElementById('drawingCanvas');
 const context = canvas.getContext('2d');
-const socket = io();
-
 let drawing = false;
 
-// Function to start drawing
 canvas.addEventListener('mousedown', () => { drawing = true });
 canvas.addEventListener('mouseup', () => { drawing = false });
-canvas.addEventListener('mousemove', draw);
-
-// Function to draw on the canvas
-function draw(event) {
+canvas.addEventListener('mousemove', (event) => {
     if (!drawing) return;
 
     const rect = canvas.getBoundingClientRect();
@@ -19,21 +13,4 @@ function draw(event) {
 
     context.lineTo(x, y);
     context.stroke();
-
-    // Send drawing data to the server
-    socket.emit('draw', { x, y });
-}
-
-// Receive drawing data from the server
-socket.on('draw', (data) => {
-    context.lineTo(data.x, data.y);
-    context.stroke();
-});
-
-// Receive initial drawing data from the server
-socket.on('init', (drawingData) => {
-    drawingData.forEach(data => {
-        context.lineTo(data.x, data.y);
-        context.stroke();
-    });
 });
