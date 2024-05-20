@@ -4,30 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Drawing Board</title>
-    <style>
-        #drawingCanvas {
-            border: 1px solid black;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <canvas id="drawingCanvas" width="800" height="600"></canvas>
-    <script>
-        const canvas = document.getElementById('drawingCanvas');
-        const context = canvas.getContext('2d');
-        let drawing = false;
-
-        canvas.addEventListener('mousedown', () => { drawing = true });
-        canvas.addEventListener('mouseup', () => { drawing = false });
-        canvas.addEventListener('mousemove', (event) => {
-            if (drawing) {
-                const rect = canvas.getBoundingClientRect();
-                const x = event.clientX - rect.left;
-                const y = event.clientY - rect.top;
-                context.lineTo(x, y);
-                context.stroke();
-            }
-        });
-    </script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

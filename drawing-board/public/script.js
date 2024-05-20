@@ -1,72 +1,39 @@
-// public/script.js
-const socket = io();
-
 const canvas = document.getElementById('drawingCanvas');
 const context = canvas.getContext('2d');
+const socket = io();
 
 let drawing = false;
-let current = {};
 
-function throttle(callback, delay) {
-    let previousCall = new Date().getTime();
-    return function() {
-        const time = new Date().getTime();
+// Function to start drawing
+canvas.addEventListener('mousedown', () => { drawing = true });
+canvas.addEventListener('mouseup', () => { drawing = false });
+canvas.addEventListener('mousemove', draw);
 
-        if ((time - previousCall) >= delay) {
-            previousCall = time;
-            callback.apply(null, arguments);
-        }
-    };
-}
+// Function to draw on the canvas
+function draw(event) {
+    if (!drawing) return;
 
-function drawLine(x0, y0, x1, y1, color, emit) {
-    context.beginPath();
-    context.moveTo(x0, y0);
-    context.lineTo(x1, y1);
-    context.strokeStyle = color;
-    context.lineWidth = 2;
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    context.lineTo(x, y);
     context.stroke();
-    context.closePath();
 
-    if (!emit) { return; }
-
-    const w = canvas.width;
-    const h = canvas.height;
-
-    socket.emit('draw', {
-        x0: x0 / w,
-        y0: y0 / h,
-        x1: x1 / w,
-        y1: y1 / h
-    });
+    // Send drawing data to the server
+    socket.emit('draw', { x, y });
 }
 
-function onMouseDown(e) {
-    drawing = true;
-    current.x = e.clientX - canvas.getBoundingClientRect().left;
-    current.y = e.clientY - canvas.getBoundingClientRect().top;
-}
-
-function onMouseUp(e) {
-    if (!drawing) { return; }
-    drawing = false;
-    drawLine(current.x, current.y, e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top, socket.color, true);
-}
-
-function onMouseMove(e) {
-    if (!drawing) { return; }
-    drawLine(current.x, current.y, e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top, socket.color, true);
-    current.x = e.clientX - canvas.getBoundingClientRect().left;
-    current.y = e.clientY - canvas.getBoundingClientRect().top;
-}
-
-canvas.addEventListener('mousedown', onMouseDown, false);
-canvas.addEventListener('mouseup', onMouseUp, false);
-canvas.addEventListener('mouseout', onMouseUp, false);
-canvas.addEventListener('mousemove', throttle(onMouseMove, 10), false);
-
+// Receive drawing data from the server
 socket.on('draw', (data) => {
-    const w = canvas.width;
-    const h = canvas.height;
-    drawLine(data.x0 * w, data.y0 * h, data.x1 * w, data.y1 * h, data.color);
+    context.lineTo(data.x, data.y);
+    context.stroke();
+});
+
+// Receive initial drawing data from the server
+socket.on('init', (drawingData) => {
+    drawingData.forEach(data => {
+        context.lineTo(data.x, data.y);
+        context.stroke();
+    });
 });
